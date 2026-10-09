@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="description" content="2D Hill Climb Racing Game - Drive over hills, upgrade your ride, perform stunts, and conquer rugged terrain!">
+  <title>Hill Climb Rush - 2D Extreme Racing</title>
+
+  <!-- Mobile Landscape Orientation & PWA Meta -->
+  <meta name="screen-orientation" content="landscape">
+  <meta name="x5-orientation" content="landscape">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hill Climb Rush">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ==================== ROTATE DEVICE OVERLAY (FOR VERTICAL MOBILE BROWSERS) ==================== -->
+  <div id="orientation-lock-overlay" class="orientation-overlay">
+    <div class="orientation-content">
+      <div class="phone-rotate-anim">
+        <div class="phone-body">
+          <div class="phone-screen-glow"></div>
+          <div class="phone-notch"></div>
+        </div>
+        <div class="rotate-arrow">↻</div>
+      </div>
+      <h2 class="orientation-title">PLEASE ROTATE TO HORIZONTAL</h2>
+      <p class="orientation-desc">Hill Climb Rush requires <strong>Landscape Mode</strong> for high-speed hill climbing and pedal controls. Turn your phone sideways!</p>
+      <button id="btn-force-landscape" class="btn btn-primary btn-rotate-action" type="button">
+        <span class="btn-icon">⚡</span>
+        <span class="btn-text">ENTER FULLSCREEN LANDSCAPE</span>
+        <span class="btn-glow"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- App Container -->
+  <div id="app-container">
+
+    <!-- ==================== 1. AUTH SCREEN ==================== -->
+    <div id="auth-screen" class="screen active">
+      <div class="auth-bg-ambient"></div>
+      <div class="auth-card">
+        <div class="game-logo-badge">
+          <div class="logo-icon">🏎️</div>
+          <h1 class="game-title">HILL CLIMB <span class="highlight">RUSH</span></h1>
+          <p class="game-subtitle">2D EXTREME MOBILE OFF-ROAD ADVENTURE</p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+          <button id="tab-login" class="tab-btn active" type="button">Sign In</button>
+          <button id="tab-signup" class="tab-btn" type="button">Create Account</button>
+        </div>
+
+        <!-- Login / Signup Form -->
+        <form id="auth-form" class="auth-form" autocomplete="on">
+          <div class="input-group" id="group-name" style="display: none;">
+            <label for="auth-name">Racer Name</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input type="text" id="auth-name" placeholder="Enter driver name" maxlength="15">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="auth-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="auth-email" placeholder="racer@example.com" required autocomplete="email">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="auth-password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="auth-password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+          </div>
+
+          <div id="auth-error-msg" class="auth-error"></div>
+
+          <button type="submit" id="btn-submit-auth" class="btn btn-primary btn-block">
+            <span class="btn-text">START ENGINE</span>
+            <span class="btn-glow"></span>
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <!-- Guest Play Button -->
+        <button id="btn-guest-play" class="btn btn-guest btn-block" type="button">
+          <span class="guest-icon">⚡</span>
+          <span>PLAY AS GUEST</span>
+        </button>
+
+        <div class="auth-footer-notice">
+          <span>Guest progress is saved on this device. Sign in to sync across devices.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. MAIN MENU / GARAGE SCREEN ==================== -->
+    <div id="menu-screen" class="screen">
+      <!-- Top Bar: Player Info & Currencies -->
+      <header class="menu-header">
+        <div class="player-profile-badge">
+          <div class="avatar" id="player-avatar">🏎️</div>
+          <div class="player-meta">
+            <span class="player-name" id="display-player-name">Driver #104</span>
+            <span class="player-type-badge" id="display-account-type">GUEST</span>
+          </div>
+        </div>
+
+        <div class="currencies-cluster">
+          <div class="currency-pill coins">
+            <span class="currency-icon">🪙</span>
+            <span class="currency-amount" id="display-coins">1,500</span>
+          </div>
+          <div class="currency-pill gems">
+            <span class="currency-icon">💎</span>
+            <span class="currency-amount" id="display-gems">25</span>
+          </div>
+          <button id="btn-challenges-open" class="btn-icon" title="Challenges">🏆</button>
+          <button id="btn-settings-open" class="btn-icon" title="Settings">⚙️</button>
+          <button id="btn-logout" class="btn-icon" title="Logout">🚪</button>
+        </div>
+      </header>
+
+      <!-- Center Content: Garage Showcase & Stage Selector -->
+      <main class="menu-main">
+        <!-- Vehicle Showcase & Selection Categories -->
+        <div class="garage-viewport">
+          <div class="viewport-header-row">
+            <div class="stage-tag" id="current-stage-tag">STAGE: COUNTRYSIDE</div>
+            <!-- Category Filter Tabs: All, Cars, Bikes, Buses, Trucks -->
+            <div class="vehicle-category-tabs">
+              <button class="veh-tab-btn active" data-category="all">ALL</button>
+              <button class="veh-tab-btn" data-category="car">🚗 CARS</button>
+              <button class="veh-tab-btn" data-category="bike">🏍️ BIKES</button>
+              <button class="veh-tab-btn" data-category="bus">🚌 BUSES</button>
+              <button class="veh-tab-btn" data-category="truck">🚚 TRUCKS</button>
+            </div>
+          </div>
+          
+          <div class="vehicle-preview-container">
+            <canvas id="vehicle-preview-canvas" width="460" height="210"></canvas>
+            <div class="vehicle-platform"></div>
+          </div>
+
+          <div class="vehicle-name-card">
+            <div class="vehicle-title-row">
+              <span class="vehicle-category-badge" id="vehicle-cat-badge">CAR</span>
+              <h2 id="vehicle-name">HILL BUGGY</h2>
+              <button id="btn-vehicle-action" class="btn btn-action-veh selected">✓ SELECTED</button>
+            </div>
+            <p id="vehicle-desc">Balanced all-rounder with flexible suspension and rear-wheel drive.</p>
+            
+            <!-- Vehicle Specs Bars -->
+            <div class="vehicle-specs-row">
+              <div class="spec-item">
+                <span class="spec-label">SPEED</span>
+                <div class="spec-bar-track"><div class="spec-bar-fill" id="spec-speed" style="width: 65%;"></div></div>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">POWER</span>
+                <div class="spec-bar-track"><div class="spec-bar-fill" id="spec-power" style="width: 70%;"></div></div>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">SUSP</span>
+                <div class="spec-bar-track"><div class="spec-bar-fill" id="spec-susp" style="width: 75%;"></div></div>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">STABILITY</span>
+                <div class="spec-bar-track"><div class="spec-bar-fill" id="spec-stab" style="width: 65%;"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Horizontal Carousel of Vehicles -->
+          <div class="vehicles-carousel-wrapper">
+            <div class="vehicles-carousel" id="vehicles-carousel">
+              <!-- Dynamically populated cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Upgrades Workshop -->
+        <div class="garage-upgrades-panel">
+          <div class="panel-header">
+            <h3>GARAGE WORKSHOP</h3>
+            <span class="subtitle">MAXIMIZE CLIMBING POWER</span>
+          </div>
+
+          <div class="upgrades-grid">
+            <!-- Engine Upgrade -->
+            <div class="upgrade-card" data-stat="engine">
+              <div class="upgrade-info">
+                <span class="upgrade-icon">⚡</span>
+                <div class="upgrade-labels">
+                  <span class="stat-title">ENGINE</span>
+                  <span class="stat-level" id="level-engine">LVL 1/10</span>
+                </div>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill" id="bar-engine" style="width: 10%;"></div>
+              </div>
+              <button class="btn btn-upgrade" id="btn-upgrade-engine">
+                <span>🪙 500</span>
+              </button>
+            </div>
+
+            <!-- Suspension Upgrade -->
+            <div class="upgrade-card" data-stat="suspension">
+              <div class="upgrade-info">
+                <span class="upgrade-icon">🔩</span>
+                <div class="upgrade-labels">
+                  <span class="stat-title">SUSPENSION</span>
+                  <span class="stat-level" id="level-suspension">LVL 1/10</span>
+                </div>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill" id="bar-suspension" style="width: 10%;"></div>
+              </div>
+              <button class="btn btn-upgrade" id="btn-upgrade-suspension">
+                <span>🪙 400</span>
+              </button>
+            </div>
+
+            <!-- Tires Upgrade -->
+            <div class="upgrade-card" data-stat="tires">
+              <div class="upgrade-info">
+                <span class="upgrade-icon">🛞</span>
+                <div class="upgrade-labels">
+                  <span class="stat-title">TIRES & GRIP</span>
+                  <span class="stat-level" id="level-tires">LVL 1/10</span>
+                </div>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill" id="bar-tires" style="width: 10%;"></div>
+              </div>
+              <button class="btn btn-upgrade" id="btn-upgrade-tires">
+                <span>🪙 450</span>
+              </button>
+            </div>
+
+            <!-- 4WD Upgrade -->
+            <div class="upgrade-card" data-stat="fourwd">
+              <div class="upgrade-info">
+                <span class="upgrade-icon">⚙️</span>
+                <div class="upgrade-labels">
+                  <span class="stat-title">4WD BALANCE</span>
+                  <span class="stat-level" id="level-fourwd">LVL 1/10</span>
+                </div>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill" id="bar-fourwd" style="width: 10%;"></div>
+              </div>
+              <button class="btn btn-upgrade" id="btn-upgrade-fourwd">
+                <span>🪙 600</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Bottom Bar: Stage Selection & Start Button -->
+      <footer class="menu-footer">
+        <div class="stages-carousel">
+          <button class="stage-card active" data-stage="countryside">
+            <div class="stage-thumb countryside-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Countryside</span>
+              <span class="stage-record" id="record-countryside">Record: 0m</span>
+            </div>
+          </button>
+          
+          <button class="stage-card" data-stage="desert">
+            <div class="stage-thumb desert-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Desert Dunes</span>
+              <span class="stage-record" id="record-desert">Record: 0m</span>
+            </div>
+          </button>
+
+          <button class="stage-card" data-stage="arctic">
+            <div class="stage-thumb arctic-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Arctic Hills</span>
+              <span class="stage-record" id="record-arctic">Record: 0m</span>
+            </div>
+          </button>
+
+          <button class="stage-card" data-stage="moon">
+            <div class="stage-thumb moon-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Moon Space</span>
+              <span class="stage-record" id="record-moon">Record: 0m</span>
+            </div>
+          </button>
+
+          <button class="stage-card" data-stage="mars">
+            <div class="stage-thumb mars-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Alien Mars</span>
+              <span class="stage-record" id="record-mars">Record: 0m</span>
+            </div>
+          </button>
+
+          <button class="stage-card" data-stage="volcano">
+            <div class="stage-thumb volcano-thumb"></div>
+            <div class="stage-details">
+              <span class="stage-name">Volcano Inferno</span>
+              <span class="stage-record" id="record-volcano">Record: 0m</span>
+            </div>
+          </button>
+        </div>
+
+        <button id="btn-start-race" class="btn btn-start-race">
+          <span class="start-icon">🏁</span>
+          <span class="start-text">START RACE</span>
+          <span class="start-sub">READY TO CLIMB</span>
+        </button>
+      </footer>
+    </div>
+
+    <!-- ==================== 3. IN-GAME SCREEN ==================== -->
+    <div id="game-screen" class="screen">
+      <!-- Fullscreen Game Canvas -->
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Heads-Up Display (HUD) -->
+      <div id="game-hud">
+        <!-- Top HUD Bar -->
+        <div class="hud-top-bar">
+          <!-- Distance Indicator -->
+          <div class="hud-pill distance-pill">
+            <span class="hud-label">DISTANCE</span>
+            <span class="hud-value" id="hud-distance">0 m</span>
+          </div>
+
+          <!-- Stunt Popups Container -->
+          <div id="hud-stunt-banner" class="hud-stunt-banner">
+            <span class="stunt-title">AIR TIME!</span>
+            <span class="stunt-reward">+500 🪙</span>
+          </div>
+
+          <!-- Challenge Popups Container -->
+          <div id="hud-challenge-banner" class="hud-challenge-banner">
+            <span class="challenge-icon">🏆</span>
+            <div class="challenge-info">
+              <span class="challenge-title">CHALLENGE UNLOCKED!</span>
+              <span class="challenge-name" id="hud-challenge-text">Distance Champ: Reach 500m</span>
+            </div>
+            <span class="challenge-reward" id="hud-challenge-reward">+1,500 🪙</span>
+          </div>
+
+          <!-- Dynamic Hazard Alert -->
+          <div id="hud-hazard-banner" class="hud-hazard-banner">
+            <span class="hazard-icon">⚠️</span>
+            <span class="hazard-text" id="hud-hazard-text">CHASM BRIDGE!</span>
+          </div>
+
+          <!-- Center Fuel Gauge -->
+          <div class="hud-fuel-container">
+            <div class="fuel-header">
+              <span class="fuel-icon">⛽</span>
+              <span class="fuel-title">FUEL</span>
+            </div>
+            <div class="fuel-bar-track">
+              <div id="hud-fuel-fill" class="fuel-bar-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- Coins Counter -->
+          <div class="hud-pill coins-pill">
+            <span class="currency-icon">🪙</span>
+            <span class="hud-value" id="hud-coins">0</span>
+          </div>
+
+          <!-- Pause Button -->
+          <button id="btn-pause-game" class="btn-icon hud-btn-pause" title="Pause">⏸️</button>
+        </div>
+
+        <!-- Speedometer & RPM Cluster -->
+        <div class="hud-gauges-cluster">
+          <div class="gauge-dial">
+            <div class="gauge-needle" id="gauge-speed-needle"></div>
+            <div class="gauge-center">
+              <span class="gauge-val" id="gauge-speed-val">0</span>
+              <span class="gauge-unit">KM/H</span>
+            </div>
+          </div>
+          <div class="gauge-dial rpm-dial">
+            <div class="gauge-needle" id="gauge-rpm-needle"></div>
+            <div class="gauge-center">
+              <span class="gauge-val" id="gauge-rpm-val">0</span>
+              <span class="gauge-unit">RPM x100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Touch Controls: Pedals & Nitro Boost -->
+        <div class="mobile-controls-layer">
+          <!-- Left Pedal: BRAKE / REVERSE -->
+          <div class="pedal-wrapper pedal-brake-wrapper">
+            <button id="btn-pedal-brake" class="pedal-btn brake" type="button" aria-label="Brake and Reverse">
+              <span class="pedal-icon">🛑</span>
+              <span class="pedal-label">BRAKE</span>
+              <span class="pedal-sublabel">REVERSE</span>
+            </button>
+          </div>
+
+          <!-- Right Cluster: Nitro Boost & Gas Pedal -->
+          <div class="right-controls-cluster">
+            <!-- Rocket Nitro Booster -->
+            <div class="pedal-wrapper pedal-boost-wrapper">
+              <button id="btn-pedal-boost" class="pedal-btn boost" type="button" aria-label="Nitro Boost">
+                <span class="pedal-icon">🚀</span>
+                <span class="pedal-label">BOOST</span>
+                <span class="pedal-sublabel">🔥 10% FUEL</span>
+              </button>
+            </div>
+
+            <!-- Right Pedal: GAS / ACCELERATE -->
+            <div class="pedal-wrapper pedal-gas-wrapper">
+              <button id="btn-pedal-gas" class="pedal-btn gas" type="button" aria-label="Gas and Accelerate">
+                <span class="pedal-icon">⚡</span>
+                <span class="pedal-label">GAS</span>
+                <span class="pedal-sublabel">THROTTLE</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Overlay -->
+      <div id="pause-modal" class="modal-overlay">
+        <div class="modal-card">
+          <h2 class="modal-title">GAME PAUSED</h2>
+          <div class="modal-stats">
+            <div class="modal-stat-row">
+              <span>Current Distance:</span>
+              <span id="pause-distance">0 m</span>
+            </div>
+            <div class="modal-stat-row">
+              <span>Coins Collected:</span>
+              <span id="pause-coins">0 🪙</span>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button id="btn-resume-game" class="btn btn-primary btn-block">RESUME RACE</button>
+            <button id="btn-restart-game" class="btn btn-secondary btn-block">RESTART</button>
+            <button id="btn-pause-to-garage" class="btn btn-guest btn-block">RETURN TO GARAGE</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-card game-over-card">
+          <div class="game-over-header">
+            <span class="game-over-badge" id="game-over-reason">DRIVER DOWN!</span>
+            <h2 class="modal-title">RACE FINISHED</h2>
+          </div>
+
+          <div class="results-grid">
+            <div class="result-tile">
+              <span class="tile-label">DISTANCE</span>
+              <span class="tile-value highlight" id="result-distance">124 m</span>
+            </div>
+            <div class="result-tile">
+              <span class="tile-label">COINS EARNED</span>
+              <span class="tile-value coins" id="result-coins">+340 🪙</span>
+            </div>
+            <div class="result-tile">
+              <span class="tile-label">STUNT BONUSES</span>
+              <span class="tile-value stunts" id="result-stunts">+150 🪙</span>
+            </div>
+            <div class="result-tile">
+              <span class="tile-label">BEST RECORD</span>
+              <span class="tile-value" id="result-best-record">560 m</span>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button id="btn-gameover-retry" class="btn btn-primary btn-block">
+              <span>TRY AGAIN</span>
+            </button>
+            <button id="btn-gameover-garage" class="btn btn-secondary btn-block">
+              <span>RETURN TO GARAGE</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. SETTINGS MODAL ==================== -->
+    <div id="settings-modal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header-with-close">
+          <h2 class="modal-title">GAME SETTINGS</h2>
+          <button id="btn-settings-close" class="btn-icon">✖</button>
+        </div>
+
+        <div class="settings-list">
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Sound Effects (SFX)</span>
+              <small>Engine sound, tire squeals, coin chimes</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-sfx" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Music & Ambience</span>
+              <small>Background engine atmosphere</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-music" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Keyboard & Gamepad</span>
+              <small>Gas: Right / D | Brake: Left / A | Boost: Shift / Space / W</small>
+            </div>
+            <span class="badge-tag">ENABLED</span>
+          </div>
+
+          <div class="setting-item danger-zone">
+            <div class="setting-label">
+              <span>Reset Game Data</span>
+              <small>Clears all saved upgrades and coins</small>
+            </div>
+            <button id="btn-reset-data" class="btn btn-danger btn-sm">Reset</button>
+          </div>
+        </div>
+
+        <div class="settings-version">
+          <span>Hill Climb Rush v1.0.0 (Play Store Ready Edition)</span>
+        </div>
+      </div>
+    <!-- ==================== 5. CHALLENGES MODAL ==================== -->
+    <div id="challenges-modal" class="modal-overlay">
+      <div class="modal-card challenges-card">
+        <div class="modal-header-with-close">
+          <div class="challenges-modal-title-row">
+            <span class="trophy-icon">🏆</span>
+            <h2 class="modal-title">DAILY CHALLENGES</h2>
+          </div>
+          <button id="btn-challenges-close" class="btn-icon">✖</button>
+        </div>
+
+        <p class="challenges-intro">Conquer extreme off-road stunts and difficult terrain to earn massive coin bounties!</p>
+
+        <div class="challenges-list" id="challenges-list-container">
+          <!-- Dynamically populated from AuthManager -->
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-challenges-ok" class="btn btn-primary btn-block">LET'S RACE</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/orientation.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/menu.js"></script>
+
+  <!-- Service Worker Registration for PWA / Mobile -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
